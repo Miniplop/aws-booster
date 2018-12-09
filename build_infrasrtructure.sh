@@ -56,10 +56,15 @@ fi
 # Create a ECS Repository for dockerfile
 aws cloudformation deploy \
     --profile ${PROFILE} \
-    --stack-name ${PROJECT_NAME}-ecr-repository \
+    --stack-name ${PROJECT_NAME}-ecs-repository \
     --template-file infrastructure/ecs-repository.yml \
     --region ${REGION} \
     --no-fail-on-empty-changeset \
     --parameter-overrides RepositoryName=${PROJECT_NAME}-ecr-repository
 
-export $(aws cloudformation describe-stacks --stack-name ${PROJECT_NAME}-ecr-repository --region ${REGION} --profile ${PROFILE} --output text --query 'Stacks[].Outputs[]' | tr '\t' '=')
+export $(aws cloudformation describe-stacks --stack-name ${PROJECT_NAME}-ecs-repository --region ${REGION} --profile ${PROFILE} --output text --query 'Stacks[].Outputs[]' | tr '\t' '=')
+
+# Push the Dockerfile on ECS
+$(aws ecr get-login --no-include-email --region ${REGION} --profile ${PROFILE})
+docker build --tag "${ECSRepository}:latest" .
+docker push "${ECSRepository}:latest"
