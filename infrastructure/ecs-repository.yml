@@ -1,0 +1,16 @@
+Description: ECR Repositories
+
+Parameters:
+  RepositoryName:
+    Type: String
+    Default: default
+
+Resources:
+  Repository:
+    Type: "AWS::ECR::Repository"
+    Properties:
+      RepositoryName: !Ref RepositoryName
+
+Outputs:
+  ECSRepository:
+    Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${RepositoryName}
