@@ -8,8 +8,7 @@ RUN curl --silent --location https://rpm.nodesource.com/setup_8.x | bash -
 RUN yum -y install nodejs
 
 # Copy nginx configuration file and create foler /var/app
-COPY nginx.conf /tmp
-RUN mv /tmp/nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx/nginx.conf
 RUN mkdir -p /var/app
 
 # Copy NodeJS App to container
