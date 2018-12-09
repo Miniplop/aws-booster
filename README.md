@@ -10,11 +10,13 @@
 
 ### 2. Create your programmatic access - 10 min
 
+- Login in your [AWS console](https://signin.aws.amazon.com/signin)
 - Go to [AWS IAM](https://console.aws.amazon.com/iam/home?region=eu-west-1#/users)
 - Click on Add User
 - Use as username {your_name}-ProgrammaticAccess
 - Choose "Programmatic access" for Access type
 - Click on "Next: Permissions"
+- Click on "Next: Tags"
 - Choose "Attach existing policies directly" and check "AdministratorAccess"
 - Click on "Next: Review" and then on "Create User"
 - Note the Access key ID and the Secret Access key (will be needed later) 
