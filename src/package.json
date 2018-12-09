@@ -1,0 +1,24 @@
+{
+  "name": "gdpr-api",
+  "version": "0.0.1",
+  "dependencies": {
+    "aws-sdk": "2.233.1",
+    "express": "4.16.3",
+    "moment": "2.22.1",
+    "winston": "2.4.2"
+  },
+  "devDependencies": {
+    "mocha": "5.0.4",
+    "nyc": "11.4.1",
+    "should": "13.2.1",
+    "jsdoc": "3.4.3",
+    "jshint": "2.9.1"
+  },
+  "main": "index.js",
+  "engines": {
+    "node": ">= 8.11.1"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}
