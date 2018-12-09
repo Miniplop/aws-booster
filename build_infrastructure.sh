@@ -53,7 +53,9 @@ then
     exit
 fi
 
-SUBNETS=$(aws ec2 describe-subnets --region eu-west-1 --profile ivann-aws --output text | awk '{print $12}' ORS=',' | sed 's/,$//')
+VPC_ID=$(aws ec2 describe-vpcs --region ${REGION} --profile ${PROFILE} --filters "Name=isDefault, Values=true" | grep -oe 'VpcId": "[^"]*' | grep -oe 'vpc-.*')
+SUBNETS=$(aws ec2 describe-subnets --region ${REGION} --profile ${PROFILE} | grep -oe 'SubnetId": "[^"]*' | grep -oe 'subnet-.*' | awk '{print $0}' ORS=',' | sed 's/,$//')
+
 
 ## Create LoadBalancer security group
 aws cloudformation deploy \
