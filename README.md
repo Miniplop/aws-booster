@@ -50,3 +50,8 @@ region = eu-west-1
 aws configure get aws_access_key_id --profile {your_profile_name}
 ``
 
+### 3. Launch the provisioning
+
+`````
+./build_infrastructure.sh -p {your_profile_name} -r eu-west-1 --project-name {your_project_name}
+
