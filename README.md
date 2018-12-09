@@ -1,5 +1,9 @@
 # AWS - BOOSTER 🚀
 
+## Prerequisites
+
+- Minimun AWS CLI version 1.16
+
 ## How to use
 
 - Create a new AWS account
