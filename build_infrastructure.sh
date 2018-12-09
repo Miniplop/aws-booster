@@ -53,7 +53,9 @@ then
     exit
 fi
 
-## Create Load balancer security group
+SUBNETS=$(aws ec2 describe-subnets --region eu-west-1 --profile ivann-aws --output text | awk '{print $12}' ORS=',' | sed 's/,$//')
+
+## Create LoadBalancer security group
 aws cloudformation deploy \
     --stack-name ${PROJECT_NAME}-sg \
     --profile ${PROFILE} \
@@ -61,6 +63,21 @@ aws cloudformation deploy \
     --region ${REGION} \
     --parameter-overrides \
         ProjectName=${PROJECT_NAME} \
+    --no-fail-on-empty-changeset
+
+# Export the LoadBalancer variable
+export $(aws cloudformation describe-stacks --stack-name ${PROJECT_NAME}-sg --region ${REGION} --profile ${PROFILE} --output text --query 'Stacks[].Outputs[]' | tr '\t' '=')
+
+## Create LoadBalancer
+aws cloudformation deploy \
+    --stack-name ${PROJECT_NAME}-load-balancer \
+    --profile ${PROFILE} \
+    --template-file infrastructure/load-balancer.yml \
+    --region ${REGION} \
+    --parameter-overrides \
+        ProjectName=${PROJECT_NAME} \
+        Subnets=${SUBNETS} \
+        SecurityGroup=${AlbSg} \
     --no-fail-on-empty-changeset
 
 ## Create IAM Roles
