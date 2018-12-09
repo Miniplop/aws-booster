@@ -56,8 +56,11 @@ region = eu-west-1
 aws configure get aws_access_key_id --profile {your_profile_name}
 ``
 
+- Create a key pair in [EC2 services](https://eu-west-1.console.aws.amazon.com/ec2/v2/home?region=eu-west-1#KeyPairs:sort=keyName)
+- Note the key pair name (will be needed later) 
+
 ### 3. Launch the provisioning
 
 `````
-./build_infrastructure.sh -p {your_profile_name} -r eu-west-1 --project-name {your_project_name}
+./build_infrastructure.sh -p {your_profile_name} -r eu-west-1 -k {your_key_pair_name}.pem --project-name {your_project_name}
 

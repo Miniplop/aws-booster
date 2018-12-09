@@ -8,6 +8,29 @@ Parameters:
     Type: String
   
 Resources:
+  EC2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-ec2-role
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "ec2.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub ${ProjectName}-ec2-instance-profile
+      Path: /
+      Roles:
+        - !Ref EC2Role
   TaskRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -40,6 +63,8 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole
 Outputs:
+  EC2InstanceProfile:
+    Value: !Ref EC2InstanceProfile
   TaskRole:
     Value: !Ref TaskRole
   ServiceRole:

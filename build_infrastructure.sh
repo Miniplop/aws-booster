@@ -19,6 +19,10 @@ case $key in
     PROFILE="$2"
     shift # past argument
     ;;
+    -k|--key-name)
+    PEM_KEY="$2"
+    shift # past argument
+    ;;
     --project-name)
     PROJECT_NAME="$2"
     shift # past argument
@@ -32,7 +36,10 @@ esac
 shift # past argument or value
 done
 
-echo "===== AWS Booster ====="
+echo '  __   _  _  ____    ____   __    __   ____  ____  ____  ____'
+echo ' / _\ / )( \/ ___)  (  _ \ /  \  /  \ / ___)(_  _)(  __)(  _ \'
+echo '/    \\ /\ /\___ \   ) _ ((  O )(  O )\___ \  )(   ) _)  )   /'
+echo '\_/\_/(_/\_)(____/  (____/ \__/  \__/ (____/ (__) (____)(__\_)'
 
 # We check if AWS Cli profile is in parameters to set env var
 if [ -z "$PROFILE" ]
@@ -53,17 +60,24 @@ then
     exit
 fi
 
+if [ -z "$PEM_KEY" ]
+then
+    echo "/!\ PEM key name parameter is empty, please provide one using --key-name or -k  !"
+    exit
+fi
+
 VPC_ID=$(aws ec2 describe-vpcs --region ${REGION} --profile ${PROFILE} --filters "Name=isDefault, Values=true" | grep -oe 'VpcId": "[^"]*' | grep -oe 'vpc-.*')
 SUBNETS=$(aws ec2 describe-subnets --region ${REGION} --profile ${PROFILE} | grep -oe 'SubnetId": "[^"]*' | grep -oe 'subnet-.*' | awk '{print $0}' ORS=',' | sed 's/,$//')
 
-## Create LoadBalancer security group
+## Create security group
 aws cloudformation deploy \
     --stack-name ${PROJECT_NAME}-sg \
     --profile ${PROFILE} \
-    --template-file infrastructure/load-balancer-security-group.yml \
+    --template-file infrastructure/security-group.yml \
     --region ${REGION} \
     --parameter-overrides \
         ProjectName=${PROJECT_NAME} \
+        VpcId=${VPC_ID} \
     --no-fail-on-empty-changeset
 
 # Export the LoadBalancer variable
@@ -82,20 +96,8 @@ aws cloudformation deploy \
         VpcId=${VPC_ID} \
     --no-fail-on-empty-changeset
 
-# Export the LoadBalancer variable
+# Export the TargetGroup variable
 export $(aws cloudformation describe-stacks --stack-name ${PROJECT_NAME}-load-balancer --region ${REGION} --profile ${PROFILE} --output text --query 'Stacks[].Outputs[]' | tr '\t' '=')
-
-## Create cloud front
-aws cloudformation deploy \
-    --profile ${PROFILE} \
-    --stack-name ${PROJECT_NAME}-cloud-fornt \
-    --template-file infrastructure/cloud-front.yml \
-    --capabilities CAPABILITY_NAMED_IAM \
-    --no-fail-on-empty-changeset \
-    --region ${REGION} \
-    --parameter-overrides \
-        ProjectName=${PROJECT_NAME} \
-        AlbDNS=${AlbDNS} \
 
 ## Create IAM Roles
 aws cloudformation deploy \
@@ -139,6 +141,24 @@ aws cloudformation deploy \
 # Export the ECSCluster variable
 export $(aws cloudformation describe-stacks --stack-name ${PROJECT_NAME}-ecs-cluster --region ${REGION} --profile ${PROFILE} --output text --query 'Stacks[].Outputs[]' | tr '\t' '=')
 
+## ECS AutoScaling group
+aws cloudformation deploy \
+    --stack-name ${PROJECT_NAME}-ecs-autoscaling \
+    --profile ${PROFILE} \
+    --template-file infrastructure/autoscaling.yml \
+    --region ${REGION} \
+    --no-fail-on-empty-changeset \
+    --parameter-overrides \
+        InstanceProfile=${EC2InstanceProfile} \
+        AssiociatePublicIp=true \
+        Subnets=${SUBNETS} \
+        ProjectName=${PROJECT_NAME} \
+        KeyName=${PEM_KEY} \
+        SecurityGroup=${DockerSg} \
+        ECSCluster=${ECSCluster}
+
+export $(aws cloudformation describe-stacks --stack-name ${PROJECT_NAME}-ecs-autoscaling --region ${REGION} --profile ${PROFILE} --output text --query 'Stacks[].Outputs[]' | tr '\t' '=')
+
 ## Enable ECS Services for the cluster
 aws cloudformation deploy \
     --stack-name ${PROJECT_NAME}-ecs-services \
@@ -148,5 +168,8 @@ aws cloudformation deploy \
     --parameter-overrides \
         ECSTaskRole=${TaskRole} \
         DockerRepository=${ECSRepository} \
+        ECSServiceRole=${ServiceRole} \
+        ECSCluster=${ECSCluster} \
+        TargetGroup=${TargetGroup} \
         ProjectName=${PROJECT_NAME} \
     --no-fail-on-empty-changeset

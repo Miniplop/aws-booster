@@ -1,0 +1,97 @@
+Description: Autoscaling Group
+
+Parameters:
+  ProjectName:
+    Description: projectName
+    Type: String
+
+  InstanceProfile:
+    Type: String
+
+  Subnets:
+    Type: List<AWS::EC2::Subnet::Id>
+
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+
+  ECSCluster:
+    Type: String
+
+  AssiociatePublicIp:
+    Type: String
+
+Mappings:
+  AWSRegionToAMI:
+    us-east-1:
+      AMI: ami-5253c32d
+    us-east-2:
+      AMI: ami-956e52f0
+    us-west-1:
+      AMI: ami-6b81980b
+    us-west-2:
+      AMI: ami-d2f489aa
+    eu-west-1:
+      AMI: ami-c91624b0
+    eu-west-2:
+      AMI: ami-3622cf51
+    eu-west-3:
+      AMI: ami-ca75c4b7
+    eu-central-1:
+      AMI: ami-10e6c8fb
+    ap-northeast-1:
+      AMI: ami-f3f8098c
+    ap-northeast-2:
+      AMI: ami-7c69c112
+    ap-southeast-1:
+      AMI: ami-b75a6acb
+    ap-southeast-2:
+      AMI: ami-bc04d5de
+    ca-central-1:
+      AMI: ami-da6cecbe
+    ap-south-1:
+      AMI: ami-c7072aa8
+    sa-east-1:
+      AMI: ami-a1e2becd
+
+Resources:
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier: !Ref Subnets
+      LaunchConfigurationName: !Ref LaunchConfiguration
+      MinSize: 1
+      MaxSize: 1
+      DesiredCapacity: 1
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}
+          PropagateAtLaunch: true
+        - Key: Project
+          Value: !Sub ${ProjectName}
+          PropagateAtLaunch: true
+
+  LaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      AssociatePublicIpAddress: !Ref AssiociatePublicIp
+      KeyName: !Ref KeyName
+      ImageId: !FindInMap [ AWSRegionToAMI, !Ref "AWS::Region", AMI ]
+      InstanceType: t2.micro
+      IamInstanceProfile: !Ref InstanceProfile
+      BlockDeviceMappings: 
+        - DeviceName: "/dev/xvda"
+          Ebs:
+            VolumeSize: "50"
+            VolumeType: "gp2"
+      SecurityGroups:
+        - !Ref SecurityGroup
+      UserData:
+        "Fn::Base64": !Sub |
+          #!/bin/bash
+          echo ECS_CLUSTER=${ECSCluster} > /etc/ecs/ecs.config
+Outputs:
+  AutoScaling:
+    Value: !Ref AutoScalingGroup

@@ -6,7 +6,29 @@ Parameters:
   ProjectName:
     Type: String
 
+  VpcId:
+    Type: String
+
 Resources:
+  DockerSg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub ${ProjectName}-sg
+      GroupDescription: !Sub ${ProjectName}-sg
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535
+          SourceSecurityGroupId: !Ref AlbSg
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-sg
+      VpcId: !Ref VpcId
+
   AlbSg:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -36,7 +58,10 @@ Resources:
       Tags:
       - Key: Name
         Value: !Sub ${ProjectName}-load-balancer-sg
+      VpcId: !Ref VpcId
 
 Outputs:
   AlbSg:
     Value: !GetAtt AlbSg.GroupId
+  DockerSg:
+    Value: !GetAtt DockerSg.GroupId

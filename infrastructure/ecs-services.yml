@@ -1,6 +1,15 @@
 Description: ECS Services
 
 Parameters:
+  ECSCluster:
+    Type: String
+
+  ECSServiceRole:
+    Type: String
+
+  TargetGroup:
+    Type: String
+
   ECSTaskRole:
     Type: String
 
@@ -27,6 +36,21 @@ Resources:
             - ContainerPort: 80
               HostPort: 0
               Protocol: tcp
+  ECSService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref ECSCluster
+      DesiredCount: 1
+      TaskDefinition: !Ref TaskDefinition
+      ServiceName: !Sub ${ProjectName}-Service
+      Role: !Ref ECSServiceRole
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+      LoadBalancers:
+        - ContainerName: !Sub ${ProjectName}Container
+          ContainerPort: 80
+          TargetGroupArn: !Ref TargetGroup
 Outputs:
   FamilyName:
     Value: !Sub ${ProjectName}-TaskFamily
