@@ -80,6 +80,7 @@ aws cloudformation deploy \
         ProjectName=${PROJECT_NAME} \
         Subnets=${SUBNETS} \
         SecurityGroup=${AlbSg} \
+        VpcId=${VPC_ID} \
     --no-fail-on-empty-changeset
 
 ## Create IAM Roles
