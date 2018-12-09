@@ -1,0 +1,16 @@
+Description: ECS Clusters
+
+Parameters:
+  ClusterName:
+    Type: String
+    Default: Default
+
+Resources:
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Ref ClusterName
+
+Outputs:
+  ECSCluster:
+      Value: !Ref Cluster

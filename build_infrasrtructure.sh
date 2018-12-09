@@ -53,7 +53,7 @@ then
     exit
 fi
 
-# Create a ECS Repository for dockerfile
+# Create an ECS Repository for Dockerfile
 aws cloudformation deploy \
     --profile ${PROFILE} \
     --stack-name ${PROJECT_NAME}-ecs-repository \
@@ -68,3 +68,12 @@ export $(aws cloudformation describe-stacks --stack-name ${PROJECT_NAME}-ecs-rep
 $(aws ecr get-login --no-include-email --region ${REGION} --profile ${PROFILE})
 docker build --tag "${ECSRepository}:latest" .
 docker push "${ECSRepository}:latest"
+
+## Create an ECS Cluster
+aws cloudformation deploy \
+    --stack-name ${PROJECT_NAME}-ecs-cluster \
+    --profile ${PROFILE} \
+    --template-file infrastructure/ecs-cluster.yml \
+    --region ${REGION} \
+    --parameter-overrides ClusterName=${PROJECT_NAME}-cluster \
+    --no-fail-on-empty-changeset
