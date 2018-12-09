@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Cloudfront distribution (No Alias, No ACM)
+
+Parameters:
+  ProjectName:
+    Type: String
+
+  AlbDNS:
+    Type: String
+
+Resources:
+  Distribution:
+      Type: 'AWS::CloudFront::Distribution'
+      Properties:
+        DistributionConfig:
+          Enabled: true
+          PriceClass: PriceClass_100
+          IPV6Enabled: false
+
+          DefaultCacheBehavior:
+            AllowedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+            CachedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+            Compress: true
+            DefaultTTL: 0
+            MinTTL: 0
+            MaxTTL: 0
+            TargetOriginId: !Ref AlbDNS
+            ViewerProtocolPolicy: redirect-to-https
+            SmoothStreaming: false
+            ForwardedValues:
+              Headers:
+                - CloudFront-Forwarded-Proto
+                - CloudFront-Is-Mobile-Viewer
+                - CloudFront-Is-Tablet-Viewer
+                - Host
+                - Origin
+              Cookies:
+                Forward: all
+              QueryString: true
+
+          CustomErrorResponses:
+            - ErrorCode: 400
+              ErrorCachingMinTTL: 0
+            - ErrorCode: 403
+              ErrorCachingMinTTL: 0
+            - ErrorCode: 404
+              ErrorCachingMinTTL: 0
+            - ErrorCode: 405
+              ErrorCachingMinTTL: 0
+            - ErrorCode: 414
+              ErrorCachingMinTTL: 0
+            - ErrorCode: 416
+              ErrorCachingMinTTL: 0
+            - ErrorCode: 500
+              ErrorCachingMinTTL: 0
+            - ErrorCode: 501
+              ErrorCachingMinTTL: 0
+            - ErrorCode: 502
+              ErrorCachingMinTTL: 0
+            - ErrorCode: 503
+              ErrorCachingMinTTL: 0
+            - ErrorCode: 504
+              ErrorCachingMinTTL: 0
+
+          ViewerCertificate:
+            CloudFrontDefaultCertificate: true
+
+          Origins:
+            - Id: !Ref AlbDNS
+              DomainName: !Ref AlbDNS
+              CustomOriginConfig:
+                OriginKeepaliveTimeout: 5
+                OriginReadTimeout: 30
+                HTTPPort: 80
+                HTTPSPort: 443
+                OriginProtocolPolicy: http-only
+                OriginSSLProtocols:
+                  - TLSv1
+                  - TLSv1.1
+                  - TLSv1.2
+
+        Tags:
+          - Key: Project
+            Value: !Ref ProjectName
+
+Outputs:
+  Distribution:
+    Value: !Ref Distribution
