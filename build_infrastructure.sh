@@ -102,14 +102,14 @@ export $(aws cloudformation describe-stacks --stack-name ${PROJECT_NAME}-load-ba
 ## Create cloud front
 aws cloudformation deploy \
     --profile ${PROFILE} \
-    --stack-name ${PROJECT_NAME}-cloud-fornt \
+    --stack-name ${PROJECT_NAME}-cloud-front \
     --template-file infrastructure/cloud-front.yml \
     --capabilities CAPABILITY_NAMED_IAM \
     --no-fail-on-empty-changeset \
     --region ${REGION} \
     --parameter-overrides \
         ProjectName=${PROJECT_NAME} \
-        AlbDNS=${AlbDNS} \
+        AlbDNS=${AlbDNS}
 
 ## Create IAM Roles
 aws cloudformation deploy \
