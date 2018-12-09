@@ -33,7 +33,7 @@ Resources:
         - Key: Name
           Value: !Sub ${ProjectName}-load-balancer
         - Key: Project
-          Value: VoodooIo
+          Value: !Ref ProjectName
 
   LoadBalancerListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -79,7 +79,7 @@ Resources:
 Outputs:
   ServiceUrl:
     Value: !Sub http://${LoadBalancer.DNSName}
-  ServiceId:
+  AlbDNS:
     Value: !GetAtt LoadBalancer.DNSName
   AlbName:
     Value: !GetAtt LoadBalancer.LoadBalancerFullName
