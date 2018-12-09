@@ -53,6 +53,19 @@ then
     exit
 fi
 
+## Create IAM Roles
+aws cloudformation deploy \
+    --profile ${PROFILE} \
+    --stack-name ${PROJECT_NAME}-iam \
+    --template-file infrastructure/iam.yml \
+    --capabilities CAPABILITY_NAMED_IAM \
+    --no-fail-on-empty-changeset \
+    --region ${REGION} \
+    --parameter-overrides ProjectName=${PROJECT_NAME}
+
+# Export the TaskRole variable
+export $(aws cloudformation describe-stacks --stack-name ${PROJECT_NAME}-iam --region ${REGION} --profile ${PROFILE} --output text --query 'Stacks[].Outputs[]' | tr '\t' '=')
+
 # Create an ECS Repository for Dockerfile
 aws cloudformation deploy \
     --profile ${PROFILE} \
@@ -62,6 +75,7 @@ aws cloudformation deploy \
     --no-fail-on-empty-changeset \
     --parameter-overrides RepositoryName=${PROJECT_NAME}-ecr-repository
 
+# Export the ECSRepository variable
 export $(aws cloudformation describe-stacks --stack-name ${PROJECT_NAME}-ecs-repository --region ${REGION} --profile ${PROFILE} --output text --query 'Stacks[].Outputs[]' | tr '\t' '=')
 
 # Push the Dockerfile on ECS
@@ -76,4 +90,19 @@ aws cloudformation deploy \
     --template-file infrastructure/ecs-cluster.yml \
     --region ${REGION} \
     --parameter-overrides ClusterName=${PROJECT_NAME}-cluster \
+    --no-fail-on-empty-changeset
+
+# Export the ECSCluster variable
+export $(aws cloudformation describe-stacks --stack-name ${PROJECT_NAME}-ecs-cluster --region ${REGION} --profile ${PROFILE} --output text --query 'Stacks[].Outputs[]' | tr '\t' '=')
+
+## Enable ECS Services for the cluster
+aws cloudformation deploy \
+    --stack-name ${PROJECT_NAME}-ecs-services \
+    --profile ${PROFILE} \
+    --template-file infrastructure/ecs-services.yml \
+    --region ${REGION} \
+    --parameter-overrides \
+        ECSTaskRole=${TaskRole} \
+        DockerRepository=${ECSRepository} \
+        ProjectName=${PROJECT_NAME} \
     --no-fail-on-empty-changeset

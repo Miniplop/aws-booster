@@ -1,0 +1,32 @@
+Description: ECS Services
+
+Parameters:
+  ECSTaskRole:
+    Type: String
+
+  DockerRepository:
+    Type: String
+
+  ProjectName:
+    Description: projectName
+    Type: String
+Resources:
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      NetworkMode: bridge
+      Family: !Sub ${ProjectName}-TaskFamily
+      TaskRoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/${ECSTaskRole}
+      ContainerDefinitions:
+        - Name: !Sub ${ProjectName}Container
+          Image: !Sub ${DockerRepository}:latest
+          Essential: true
+          MemoryReservation: 512
+          Cpu: 256
+          PortMappings:
+            - ContainerPort: 80
+              HostPort: 0
+              Protocol: tcp
+Outputs:
+  FamilyName:
+    Value: !Sub ${ProjectName}-TaskFamily

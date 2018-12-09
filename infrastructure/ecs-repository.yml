@@ -3,7 +3,6 @@ Description: ECR Repositories
 Parameters:
   RepositoryName:
     Type: String
-    Default: default
 
 Resources:
   Repository:
