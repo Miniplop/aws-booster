@@ -53,6 +53,16 @@ then
     exit
 fi
 
+## Create Load balancer security group
+aws cloudformation deploy \
+    --stack-name ${PROJECT_NAME}-sg \
+    --profile ${PROFILE} \
+    --template-file infrastructure/load-balancer-security-group.yml \
+    --region ${REGION} \
+    --parameter-overrides \
+        ProjectName=${PROJECT_NAME} \
+    --no-fail-on-empty-changeset
+
 ## Create IAM Roles
 aws cloudformation deploy \
     --profile ${PROFILE} \
